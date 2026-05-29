@@ -6,14 +6,20 @@
 Rust CLI tool that illuminates text files with ASCII art. 
 
 ```
-╭─────────────────────────────❦────────────────────────────╮
-│  __        __ ithin the quiet scriptorium the monks bent  │
-│  \ \      / / over their vellum, grinding pigment and     │
-│   \ \ /\ / /  laying gold so that the words might shine    │
-│    \ V  V /   across the centuries. Each page began with  │
-│     \_/\_/    a single towering letter, a gateway         │
-│ through which the reader entered the text.                 │
-╰─────────────────────────────❦────────────────────────────╯
+╭───────────────────────────❦──────────────────────────╮
+│      ...    .     ...      ithin the quiet           │
+│   .~`"888x.!**h.-``888h.   scriptorium the monks     │
+│  dX   `8888   :X   48888>  bent over their vellum,   │
+│ '888x  8888  X88.  '8888>  grinding pigment and      │
+│ '88888 8888X:8888:   )?""` laying gold so that the   │
+│  `8888>8888 '88888>.88h.   words might shine across  │
+│    `8" 888f  `8888>X88888. the centuries.            │
+│   -~` '8%"     88" `88888X                           │
+│   .H888n.      XHn.  `*88!                           │
+│  :88888888x..x88888X.  `!                            │
+│  f  ^%888888% `*88888nx"                             │
+│       `"**"`    `"**""                               │
+╰───────────────────────────❦──────────────────────────╯
 ```
 
 ## The craft, mapped to features
@@ -50,6 +56,7 @@ lindisfarner [OPTIONS] [FILE]
   -r, --rubricate <W,..> words to highlight in the rubric colour
       --drolleries       adorn the left margin with ASCII marginal figures
       --seed <N>         vary which drolleries appear   [default: 0]
+  -p, --pilcrows         mark paragraph breaks with ¶ instead of a blank line
   -o, --output <FILE>    write to a file instead of stdout
 ```
 
@@ -80,6 +87,9 @@ lindisfarner sample.txt -o page.txt
 
 # Drolleries in the margin, reshuffled with a seed
 lindisfarner sample.txt --drolleries --seed 3
+
+# Run paragraphs together, marking each break with a red pilcrow
+lindisfarner sample.txt --pilcrows --drop-cap none
 ```
 
 ## How it fits together
@@ -110,5 +120,3 @@ paragraph, separated from the text by a ruled line. These imitate the original d
 - **Glosses & manicules**: a second margin channel for user notes or a `☞` set
   beside lines containing rubricated words.
 - **Line fillers**: pad short final lines with `❧` or `✦` ornaments.
-- **Pilcrows**: insert `¶` at paragraph breaks instead of blank lines.
-```
