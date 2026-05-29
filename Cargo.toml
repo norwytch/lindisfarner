@@ -1,0 +1,20 @@
+[package]
+name = "lindisfarner"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+description = "A digital scriptorium: illuminate plain text with ASCII-art initials, rubrics, and ornate borders."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/norwytch/lindisfarner"
+keywords = ["cli", "ascii-art", "figlet", "ansi", "text"]
+categories = ["command-line-utilities", "text-processing"]
+
+[[bin]]
+name = "lindisfarner"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+figlet-rs = "0.1"
+unicode-width = "0.2"
