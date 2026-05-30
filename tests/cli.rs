@@ -113,7 +113,12 @@ fn missing_file_reports_a_friendly_error() {
 /// blank-line-separated, non-empty blocks. Derived so the tests don't hardcode
 /// a count that drifts when sample.txt changes.
 fn sample_breaks() -> usize {
-    let text = std::fs::read_to_string("sample.txt").unwrap();
+    // Normalise line endings exactly as the binary does, so the count is right
+    // even when git checks the fixture out with CRLF (e.g. on Windows).
+    let text = std::fs::read_to_string("sample.txt")
+        .unwrap()
+        .replace("\r\n", "\n")
+        .replace('\r', "\n");
     let paragraphs = text.split("\n\n").filter(|p| !p.trim().is_empty()).count();
     paragraphs.saturating_sub(1)
 }
