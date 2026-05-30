@@ -2,7 +2,7 @@
 name = "lindisfarner"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.82"
+rust-version = "1.85"
 description = "A digital scriptorium: illuminate plain text with ASCII-art initials, rubrics, and ornate borders."
 license = "MIT"
 readme = "README.md"

@@ -23,7 +23,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`unicode-width`), so wide characters keep the right margin aligned.
 - Property tests (`proptest`) for the wrapping invariants, plus integration
   tests covering rendering, colour modes, stdin, and error output.
-- CI now tests on Linux, macOS, and Windows, with a dedicated MSRV (1.82) job.
+- CI now tests on Linux, macOS, and Windows, with a dedicated MSRV (1.85) job.
 
 ### Changed
 
