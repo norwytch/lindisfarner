@@ -108,3 +108,60 @@ fn missing_file_reports_a_friendly_error() {
     // Friendly message, not a Debug dump of the error struct.
     assert!(!stderr.contains("Os {"));
 }
+
+/// Number of paragraph breaks in the fixture: one fewer than the count of
+/// blank-line-separated, non-empty blocks. Derived so the tests don't hardcode
+/// a count that drifts when sample.txt changes.
+fn sample_breaks() -> usize {
+    let text = std::fs::read_to_string("sample.txt").unwrap();
+    let paragraphs = text.split("\n\n").filter(|p| !p.trim().is_empty()).count();
+    paragraphs.saturating_sub(1)
+}
+
+#[test]
+fn pilcrows_mark_each_paragraph_break() {
+    let out = bin()
+        .args([
+            "sample.txt",
+            "-c",
+            "never",
+            "--border",
+            "none",
+            "--pilcrows",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(stdout.matches('¶').count(), sample_breaks());
+}
+
+#[test]
+fn pilcrows_replace_blank_separators() {
+    let breaks = sample_breaks();
+
+    // Without --pilcrows the breaks are blank (whitespace-only) lines...
+    let plain = bin()
+        .args(["sample.txt", "-c", "never", "--border", "none"])
+        .output()
+        .unwrap();
+    let plain = String::from_utf8(plain.stdout).unwrap();
+    let blank_lines = plain.lines().filter(|l| l.trim().is_empty()).count();
+    assert_eq!(blank_lines, breaks, "default uses one blank line per break");
+
+    // ...with it, each break line carries a pilcrow and is no longer blank.
+    let piped = bin()
+        .args([
+            "sample.txt",
+            "-c",
+            "never",
+            "--border",
+            "none",
+            "--pilcrows",
+        ])
+        .output()
+        .unwrap();
+    let piped = String::from_utf8(piped.stdout).unwrap();
+    let blank_lines = piped.lines().filter(|l| l.trim().is_empty()).count();
+    assert_eq!(blank_lines, 0, "pilcrows should leave no blank separators");
+}

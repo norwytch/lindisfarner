@@ -5,37 +5,9 @@
 
 Rust CLI tool that illuminates text files with ASCII art. 
 
-```
-╭───────────────────────────────❦──────────────────────────────╮
-│     ...     ..      ..     r Leopold Bloom ate with relish   │
-│   x*8888x.:*8888: -"888:   the inner organs of beasts and    │
-│  X   48888X `8888H  8888   fowls. He liked thick giblet      │
-│ X8x.  8888X  8888X  !888>  soup, nutty gizzards, a stuffed   │
-│ X8888 X8888  88888   "*8%- roast heart, liver slices fried   │
-│ '*888!X8888> X8888  xH8>   with crustcrumbs, fried hencod's  │
-│   `?8 `8888  X888X X888>   roes. Most of all he liked        │
-│   -^  '888"  X888  8888>   grilled mutton kidneys which gave │
-│    dx '88~x. !88~  8888>   to his palate a fine tang of      │
-│  .8888Xf.888x:!    X888X.: faintly scented urine.            │
-│ :""888":~"888"     `888*"                                    │
-│     "~'    "~        ""                                      │
-│                                                              │
-│ Kidneys were in his mind as he moved about the kitchen       │
-│ softly, righting her breakfast things on the humpy tray.     │
-│ Gelid light and air were in the kitchen but out of doors     │
-│ gentle summer morning everywhere. Made him feel a bit        │
-│ peckish.                                                     │
-│                                                              │
-│ The coals were reddening.                                    │
-│                                                              │
-│ Another slice of bread and butter: three, four: right. She   │
-│ didn't like her plate full. Right. He turned from the tray,  │
-│ lifted the kettle off the hob and set it sideways on the     │
-│ fire. It sat there, dull and squat, its spout stuck out. Cup │
-│ of tea soon. Good. Mouth dry. The cat walked stiffly round a │
-│ leg of the table with tail on high.                          │
-╰───────────────────────────────❦──────────────────────────────╯
-```
+<p align="center">
+  <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner: a gold illuminated initial, ornate ❦ border, and wrapped body text" width="560">
+</p>
 
 ## The craft, mapped to features
 

@@ -215,10 +215,19 @@ fn run() -> io::Result<()> {
             DropCapArg::First => i == 0,
         };
         if i > 0 {
-            content.push(Line {
-                shown: String::new(),
-                len: 0,
-            }); // blank spacer line
+            // Separate paragraphs with either a blank spacer or, with
+            // --pilcrows, a single red ¶ marking the break.
+            content.push(if args.pilcrows {
+                Line {
+                    shown: style.pilcrow("¶"),
+                    len: 1,
+                }
+            } else {
+                Line {
+                    shown: String::new(),
+                    len: 0,
+                }
+            });
         }
         starts.push(content.len());
         content.extend(illuminate_paragraph(para, drop_cap, &font, &opts));

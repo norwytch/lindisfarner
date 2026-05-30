@@ -78,4 +78,10 @@ impl Style {
     pub(crate) fn rubric(&self, s: &str) -> String {
         self.paint(self.theme.palette().rubric, s)
     }
+
+    /// Paint a pilcrow. Paragraph marks were historically drawn in red lead —
+    /// the very practice "rubrication" is named for — so it shares that pigment.
+    pub(crate) fn pilcrow(&self, s: &str) -> String {
+        self.paint(self.theme.palette().rubric, s)
+    }
 }

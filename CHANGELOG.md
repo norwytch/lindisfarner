@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `--pilcrows` (`-p`): mark paragraph breaks with a red ¶ instead of a blank
+  line.
 - Unicode-aware layout: line width is measured in terminal columns
   (`unicode-width`), so wide characters keep the right margin aligned.
 - Integration tests covering rendering, colour modes, stdin, and error output.
