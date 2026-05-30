@@ -162,3 +162,7 @@ drolleries by simply adding to `drollery.rs`.
   supports either side — just swap the column order).
 - **Glosses & manicules**: a second margin channel for user notes or a `☞` set
   beside lines containing rubricated words.
+- **Codebase analysis**: given a codebase, use lindisfarner for some light vandalism. 
+
+  ## Acknowledgements
+  This tool is a late wedding present for my dear friend Neil Douglas Reilly. 
