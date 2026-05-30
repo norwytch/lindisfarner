@@ -1,33 +1,18 @@
-//! lindisfarner — a digital scriptorium.
+//! lindisfarner — the command-line front end.
 //!
-//! Reads a plain text file (or standard input) and "illuminates" it: a large
-//! ASCII-art initial opens the text, chosen words are rubricated, and the whole
-//! page is set inside a decorative border.
-
-mod border;
-mod drollery;
-mod illuminate;
-mod style;
+//! Parses arguments, gathers the source text, and hands off to the
+//! `lindisfarner` library for the actual illumination. Everything here is
+//! input/output and option plumbing; the rendering lives in the library.
 
 use std::collections::HashSet;
 use std::fs;
 use std::io::{self, IsTerminal, Read, Write};
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
-use figlet_rs::FIGfont;
+use clap::{CommandFactory, Parser, ValueEnum};
+use clap_complete::Shell;
 
-use crate::border::Border;
-use crate::illuminate::{display_width, illuminate_paragraph, Line, Options};
-use crate::style::{Style, Theme};
-
-/// The marginal rule between a drollery and the body text, and its visible
-/// width (a single-column glyph flanked by two spaces).
-const MARGIN_RULE: char = '┊';
-const MARGIN_SEP_W: usize = 3;
-
-/// Blank rows left between successive drolleries down the margin.
-const DROLLERY_GAP: usize = 3;
+use lindisfarner::{render, Border, Config, DropCap, Font, Theme, MIN_WIDTH};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -43,9 +28,9 @@ struct Args {
     #[arg(short, long)]
     output: Option<PathBuf>,
 
-    /// Column width for the wrapped body text
-    #[arg(short, long, default_value_t = 60)]
-    width: usize,
+    /// Column width for the wrapped body text (defaults to the terminal width)
+    #[arg(short, long)]
+    width: Option<usize>,
 
     /// Border style around the page
     #[arg(short, long, value_enum, default_value_t = BorderArg::Ornate)]
@@ -82,6 +67,34 @@ struct Args {
     /// Run paragraphs together, separating them with a ¶ instead of a blank line
     #[arg(short, long)]
     pilcrows: bool,
+
+    /// Justify body text flush to both margins
+    #[arg(short = 'j', long)]
+    justify: bool,
+
+    /// Break over-long words with a trailing hyphen
+    #[arg(long)]
+    hyphenate: bool,
+
+    /// Fill short closing lines with ❧ ornaments
+    #[arg(long)]
+    fillers: bool,
+
+    /// Rubricate the opening line, like a manuscript incipit
+    #[arg(long)]
+    incipit: bool,
+
+    /// Set the body in this many columns, codex-style
+    #[arg(long, default_value_t = 1)]
+    columns: usize,
+
+    /// Print a shell completion script for SHELL and exit
+    #[arg(long, value_enum, value_name = "SHELL")]
+    completions: Option<Shell>,
+
+    /// Print a roff man page and exit
+    #[arg(long)]
+    man: bool,
 }
 
 #[derive(Copy, Clone, Debug, ValueEnum)]
@@ -106,7 +119,7 @@ enum ColorArg {
     Never,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, ValueEnum)]
+#[derive(Copy, Clone, Debug, ValueEnum)]
 enum DropCapArg {
     First,
     All,
@@ -142,8 +155,31 @@ impl From<ThemeArg> for Theme {
     }
 }
 
+impl From<DropCapArg> for DropCap {
+    fn from(d: DropCapArg) -> Self {
+        match d {
+            DropCapArg::First => DropCap::First,
+            DropCapArg::All => DropCap::All,
+            DropCapArg::None => DropCap::None,
+        }
+    }
+}
+
+impl From<FontArg> for Font {
+    fn from(f: FontArg) -> Self {
+        match f {
+            FontArg::Blackletter => Font::Blackletter,
+            FontArg::Standard => Font::Standard,
+        }
+    }
+}
+
 fn main() {
     if let Err(e) = run() {
+        // A closed pipe (e.g. `lindisfarner … | head`) is normal; exit quietly.
+        if e.kind() == io::ErrorKind::BrokenPipe {
+            return;
+        }
         eprintln!("lindisfarner: {e}");
         std::process::exit(1);
     }
@@ -152,9 +188,19 @@ fn main() {
 fn run() -> io::Result<()> {
     let args = Args::parse();
 
-    // Gather the source text from a file or standard input. Normalise Windows
-    // and classic-Mac line endings so paragraph detection works the same way
-    // regardless of where the file came from.
+    // Generator modes short-circuit before any input is read.
+    if let Some(shell) = args.completions {
+        let mut cmd = Args::command();
+        let name = cmd.get_name().to_string();
+        clap_complete::generate(shell, &mut cmd, name, &mut io::stdout());
+        return Ok(());
+    }
+    if args.man {
+        clap_mangen::Man::new(Args::command()).render(&mut io::stdout())?;
+        return Ok(());
+    }
+
+    // Gather the source text from a file or standard input.
     let source = match &args.file {
         Some(path) => fs::read_to_string(path)
             .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?,
@@ -164,20 +210,13 @@ fn run() -> io::Result<()> {
             buf
         }
     };
-    let source = source.replace("\r\n", "\n").replace('\r', "\n");
 
-    // Keep the page readable: don't let the width fall below a sane minimum.
-    let width = args.width.max(24);
-
-    // Decide whether to colourise. When writing to a file or a non-terminal,
-    // "auto" stays plain so the saved page contains no escape codes.
+    // Colour turns on for a terminal and off when piped or written to a file.
     let colored = match args.color {
         ColorArg::Always => true,
         ColorArg::Never => false,
         ColorArg::Auto => args.output.is_none() && io::stdout().is_terminal(),
     };
-
-    let style = Style::new(colored, args.theme.into());
 
     let rubrics: HashSet<String> = args
         .rubricate
@@ -186,98 +225,25 @@ fn run() -> io::Result<()> {
         .filter(|w| !w.is_empty())
         .collect();
 
-    let font = match args.font {
-        FontArg::Standard => FIGfont::standard().map_err(io::Error::other)?,
-        FontArg::Blackletter => {
-            // The Fraktur font is embedded in the binary, so no font file is
-            // needed at runtime.
-            FIGfont::from_content(include_str!("../fonts/fraktur.flf")).map_err(io::Error::other)?
-        }
+    let cfg = Config {
+        width: args.width.unwrap_or_else(default_width),
+        border: args.border.into(),
+        theme: args.theme.into(),
+        colored,
+        drop_cap: args.drop_cap.into(),
+        font: args.font.into(),
+        rubrics,
+        drolleries: args.drolleries,
+        seed: args.seed,
+        pilcrows: args.pilcrows,
+        justify: args.justify,
+        hyphenate: args.hyphenate,
+        fillers: args.fillers,
+        incipit: args.incipit,
+        columns: args.columns,
     };
 
-    let opts = Options {
-        width,
-        gap: 1,
-        style: &style,
-        rubrics: &rubrics,
-    };
-
-    // Split the source into paragraphs on blank lines.
-    let split: Vec<&str> = source
-        .split("\n\n")
-        .map(str::trim)
-        .filter(|p| !p.is_empty())
-        .collect();
-
-    // With --pilcrows the paragraphs run together as one continuous block, a red
-    // ¶ marking each break inline — as a medieval scribe did, before the blank
-    // line and indent became the convention. Otherwise each paragraph stands on
-    // its own, separated by a blank line.
-    let joined;
-    let paragraphs: Vec<&str> = if args.pilcrows {
-        joined = split.join(" ¶ ");
-        vec![joined.as_str()]
-    } else {
-        split
-    };
-
-    let mut content: Vec<Line> = Vec::new();
-    for (i, para) in paragraphs.iter().enumerate() {
-        let drop_cap = match args.drop_cap {
-            DropCapArg::All => true,
-            DropCapArg::None => false,
-            DropCapArg::First => i == 0,
-        };
-        if i > 0 {
-            content.push(Line {
-                shown: String::new(),
-                len: 0,
-            }); // blank spacer line
-        }
-        content.extend(illuminate_paragraph(para, drop_cap, &font, &opts));
-    }
-
-    // Either frame the body alone, or attach a margin of drolleries first.
-    let rows = if args.drolleries && !content.is_empty() {
-        let margin_w = drollery::max_width();
-        let mut margin: Vec<Line> = (0..content.len())
-            .map(|_| Line {
-                shown: String::new(),
-                len: 0,
-            })
-            .collect();
-
-        // Scatter figures down the whole margin at fixed intervals, independent
-        // of the paragraph structure, leaving DROLLERY_GAP blank rows between
-        // them. A new figure is drawn for each slot, so the menagerie fills the
-        // margin whether the text is one flowing block or many paragraphs.
-        let mut idx = 0;
-        let mut nth = 0u64;
-        while idx < margin.len() {
-            let figure = drollery::pick(args.seed, nth);
-            for (r, row) in figure.iter().enumerate() {
-                if idx + r >= margin.len() {
-                    break;
-                }
-                margin[idx + r] = Line {
-                    shown: style.border(row),
-                    len: display_width(row),
-                };
-            }
-            idx += figure.len() + DROLLERY_GAP;
-            nth += 1;
-        }
-
-        let sep = format!(" {} ", style.border(&MARGIN_RULE.to_string()));
-        let merged =
-            illuminate::merge_columns(&margin, &content, margin_w, width, &sep, MARGIN_SEP_W);
-        let total = margin_w + MARGIN_SEP_W + width;
-        border::render(&merged, total, args.border.into(), &style)
-    } else {
-        border::render(&content, width, args.border.into(), &style)
-    };
-
-    let rendered = rows.join("\n");
+    let rendered = render(&source, &cfg);
 
     match &args.output {
         Some(path) => fs::write(path, format!("{rendered}\n"))
@@ -289,4 +255,16 @@ fn run() -> io::Result<()> {
     }
 
     Ok(())
+}
+
+/// Default body width: the terminal width (less room for the border) when
+/// writing to a terminal, otherwise a sane fixed default for pipes and files.
+fn default_width() -> usize {
+    use terminal_size::{terminal_size, Width};
+    if io::stdout().is_terminal() {
+        if let Some((Width(cols), _)) = terminal_size() {
+            return (cols as usize).saturating_sub(4).max(MIN_WIDTH);
+        }
+    }
+    60
 }

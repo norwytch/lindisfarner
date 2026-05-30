@@ -10,11 +10,21 @@ repository = "https://github.com/norwytch/lindisfarner"
 keywords = ["cli", "ascii-art", "figlet", "ansi", "text"]
 categories = ["command-line-utilities", "text-processing"]
 
+[lib]
+name = "lindisfarner"
+path = "src/lib.rs"
+
 [[bin]]
 name = "lindisfarner"
 path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+clap_mangen = "0.2"
 figlet-rs = "0.1"
+terminal_size = "0.4"
 unicode-width = "0.2"
+
+[dev-dependencies]
+proptest = "1"

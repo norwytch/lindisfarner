@@ -219,3 +219,119 @@ fn drolleries_fill_the_margin_regardless_of_paragraphs() {
         "expected several drolleries down the margin, got {figured} figured rows"
     );
 }
+
+fn stdout_of(args: &[&str]) -> String {
+    let out = bin().args(args).output().unwrap();
+    assert!(out.status.success(), "command failed: {args:?}");
+    String::from_utf8(out.stdout).unwrap()
+}
+
+#[test]
+fn justify_distributes_spaces_in_interior_lines() {
+    // Justification pads inter-word gaps, producing runs of multiple spaces that
+    // ordinary prose (single-spaced) never contains.
+    let just = stdout_of(&[
+        "sample.txt",
+        "-j",
+        "-d",
+        "none",
+        "--border",
+        "none",
+        "-c",
+        "never",
+        "-w",
+        "50",
+    ]);
+    let plain = stdout_of(&[
+        "sample.txt",
+        "-d",
+        "none",
+        "--border",
+        "none",
+        "-c",
+        "never",
+        "-w",
+        "50",
+    ]);
+    assert!(
+        just.lines().any(|l| l.trim_end().contains("  ")),
+        "justified output should contain distributed gaps"
+    );
+    assert!(
+        !plain.lines().any(|l| l.trim_end().contains("  ")),
+        "unjustified prose should be single-spaced"
+    );
+}
+
+#[test]
+fn two_columns_halve_the_height() {
+    let one = stdout_of(&[
+        "sample.txt",
+        "-d",
+        "none",
+        "--border",
+        "none",
+        "-c",
+        "never",
+        "-w",
+        "84",
+    ]);
+    let two = stdout_of(&[
+        "sample.txt",
+        "-d",
+        "none",
+        "--border",
+        "none",
+        "-c",
+        "never",
+        "-w",
+        "84",
+        "--columns",
+        "2",
+    ]);
+    assert!(
+        two.lines().count() < one.lines().count(),
+        "two columns ({}) should be shorter than one ({})",
+        two.lines().count(),
+        one.lines().count()
+    );
+}
+
+#[test]
+fn hyphenate_breaks_a_long_word_with_a_dash() {
+    let mut child = bin()
+        .args([
+            "--hyphenate",
+            "-d",
+            "none",
+            "--border",
+            "none",
+            "-c",
+            "never",
+            "-w",
+            "12",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(b"antidisestablishmentarianism")
+        .unwrap();
+    let out = child.wait_with_output().unwrap();
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.lines().any(|l| l.trim_end().ends_with('-')),
+        "expected a hyphenated break"
+    );
+}
+
+#[test]
+fn completions_and_man_page_generate() {
+    assert!(stdout_of(&["--completions", "bash"]).contains("_lindisfarner"));
+    assert!(stdout_of(&["--completions", "zsh"]).contains("#compdef"));
+    assert!(stdout_of(&["--man"]).contains(".TH"));
+}

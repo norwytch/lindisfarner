@@ -7,8 +7,8 @@
 use crate::illuminate::Line;
 use crate::style::Style;
 
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum Border {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Border {
     None,
     Simple,
     Double,
