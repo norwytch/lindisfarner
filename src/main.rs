@@ -26,6 +26,9 @@ use crate::style::{Style, Theme};
 const MARGIN_RULE: char = '┊';
 const MARGIN_SEP_W: usize = 3;
 
+/// Blank rows left between successive drolleries down the margin.
+const DROLLERY_GAP: usize = 3;
+
 #[derive(Parser, Debug)]
 #[command(
     name = "lindisfarner",
@@ -76,7 +79,7 @@ struct Args {
     #[arg(long, default_value_t = 0)]
     seed: u64,
 
-    /// Mark paragraph breaks with a ¶ pilcrow instead of a blank line
+    /// Run paragraphs together, separating them with a ¶ instead of a blank line
     #[arg(short, long)]
     pilcrows: bool,
 }
@@ -200,14 +203,25 @@ fn run() -> io::Result<()> {
     };
 
     // Split the source into paragraphs on blank lines.
-    let paragraphs: Vec<&str> = source
+    let split: Vec<&str> = source
         .split("\n\n")
         .map(str::trim)
         .filter(|p| !p.is_empty())
         .collect();
 
+    // With --pilcrows the paragraphs run together as one continuous block, a red
+    // ¶ marking each break inline — as a medieval scribe did, before the blank
+    // line and indent became the convention. Otherwise each paragraph stands on
+    // its own, separated by a blank line.
+    let joined;
+    let paragraphs: Vec<&str> = if args.pilcrows {
+        joined = split.join(" ¶ ");
+        vec![joined.as_str()]
+    } else {
+        split
+    };
+
     let mut content: Vec<Line> = Vec::new();
-    let mut starts: Vec<usize> = Vec::new();
     for (i, para) in paragraphs.iter().enumerate() {
         let drop_cap = match args.drop_cap {
             DropCapArg::All => true,
@@ -215,21 +229,11 @@ fn run() -> io::Result<()> {
             DropCapArg::First => i == 0,
         };
         if i > 0 {
-            // Separate paragraphs with either a blank spacer or, with
-            // --pilcrows, a single red ¶ marking the break.
-            content.push(if args.pilcrows {
-                Line {
-                    shown: style.pilcrow("¶"),
-                    len: 1,
-                }
-            } else {
-                Line {
-                    shown: String::new(),
-                    len: 0,
-                }
-            });
+            content.push(Line {
+                shown: String::new(),
+                len: 0,
+            }); // blank spacer line
         }
-        starts.push(content.len());
         content.extend(illuminate_paragraph(para, drop_cap, &font, &opts));
     }
 
@@ -243,21 +247,25 @@ fn run() -> io::Result<()> {
             })
             .collect();
 
-        for (pi, &start) in starts.iter().enumerate() {
-            let figure = drollery::pick(args.seed, pi as u64);
+        // Scatter figures down the whole margin at fixed intervals, independent
+        // of the paragraph structure, leaving DROLLERY_GAP blank rows between
+        // them. A new figure is drawn for each slot, so the menagerie fills the
+        // margin whether the text is one flowing block or many paragraphs.
+        let mut idx = 0;
+        let mut nth = 0u64;
+        while idx < margin.len() {
+            let figure = drollery::pick(args.seed, nth);
             for (r, row) in figure.iter().enumerate() {
-                let idx = start + r;
-                if idx >= margin.len() {
+                if idx + r >= margin.len() {
                     break;
                 }
-                if margin[idx].len != 0 {
-                    continue; // don't clobber a neighbouring figure
-                }
-                margin[idx] = Line {
+                margin[idx + r] = Line {
                     shown: style.border(row),
                     len: display_width(row),
                 };
             }
+            idx += figure.len() + DROLLERY_GAP;
+            nth += 1;
         }
 
         let sep = format!(" {} ", style.border(&MARGIN_RULE.to_string()));

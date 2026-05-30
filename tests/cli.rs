@@ -137,19 +137,31 @@ fn pilcrows_mark_each_paragraph_break() {
 }
 
 #[test]
-fn pilcrows_replace_blank_separators() {
+fn pilcrows_run_paragraphs_together() {
     let breaks = sample_breaks();
 
-    // Without --pilcrows the breaks are blank (whitespace-only) lines...
+    // By default each paragraph stands alone, separated by a blank line.
     let plain = bin()
-        .args(["sample.txt", "-c", "never", "--border", "none"])
+        .args([
+            "sample.txt",
+            "-c",
+            "never",
+            "--border",
+            "none",
+            "-d",
+            "none",
+        ])
         .output()
         .unwrap();
     let plain = String::from_utf8(plain.stdout).unwrap();
-    let blank_lines = plain.lines().filter(|l| l.trim().is_empty()).count();
-    assert_eq!(blank_lines, breaks, "default uses one blank line per break");
+    let plain_blanks = plain.lines().filter(|l| l.trim().is_empty()).count();
+    assert_eq!(
+        plain_blanks, breaks,
+        "default uses one blank line per break"
+    );
 
-    // ...with it, each break line carries a pilcrow and is no longer blank.
+    // With --pilcrows the paragraphs flow into one continuous block: no blank
+    // separators at all, and fewer lines overall than the spaced-out default.
     let piped = bin()
         .args([
             "sample.txt",
@@ -157,11 +169,53 @@ fn pilcrows_replace_blank_separators() {
             "never",
             "--border",
             "none",
+            "-d",
+            "none",
             "--pilcrows",
         ])
         .output()
         .unwrap();
     let piped = String::from_utf8(piped.stdout).unwrap();
-    let blank_lines = piped.lines().filter(|l| l.trim().is_empty()).count();
-    assert_eq!(blank_lines, 0, "pilcrows should leave no blank separators");
+    let piped_blanks = piped.lines().filter(|l| l.trim().is_empty()).count();
+    assert_eq!(piped_blanks, 0, "pilcrows should leave no blank separators");
+    assert!(
+        piped.lines().count() < plain.lines().count(),
+        "continuous flow should use fewer lines than the spaced default"
+    );
+}
+
+#[test]
+fn drolleries_fill_the_margin_regardless_of_paragraphs() {
+    // Even with --pilcrows (a single continuous paragraph), figures are
+    // scattered down the whole margin rather than tied to paragraph starts.
+    let out = bin()
+        .args([
+            "sample.txt",
+            "-c",
+            "never",
+            "--border",
+            "none",
+            "--pilcrows",
+            "--drolleries",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+
+    // Count rows whose margin cell (left of the ┊ rule) carries a figure.
+    let figured = stdout
+        .lines()
+        .filter(|l| {
+            l.split_once('┊')
+                .is_some_and(|(margin, _)| !margin.trim().is_empty())
+        })
+        .count();
+
+    // The tallest single figure is four rows, so more than four figured rows
+    // can only mean two or more figures were placed.
+    assert!(
+        figured > 4,
+        "expected several drolleries down the margin, got {figured} figured rows"
+    );
 }

@@ -41,8 +41,12 @@ pub(crate) struct Options<'a> {
     pub(crate) rubrics: &'a HashSet<String>,
 }
 
-/// Colour a word red if its alphanumeric core appears in the rubric set.
+/// Colour a word: the pilcrow always takes the rubric pigment, and any other
+/// word is reddened if its alphanumeric core appears in the rubric set.
 fn colorize_word(word: &str, style: &Style, rubrics: &HashSet<String>) -> String {
+    if word == "¶" {
+        return style.pilcrow(word);
+    }
     if rubrics.is_empty() {
         return word.to_string();
     }

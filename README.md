@@ -6,7 +6,7 @@
 Rust CLI tool that illuminates text files with ASCII art. 
 
 <p align="center">
-  <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner: a gold illuminated initial, ornate ❦ border, red ¶ pilcrows at paragraph breaks, and wrapped body text" width="560">
+  <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner: a gold illuminated initial, ornate ❦ border, ASCII drolleries down the margin, red ¶ pilcrows at paragraph breaks, and wrapped body text" width="680">
 </p>
 
 ## Features
@@ -97,8 +97,17 @@ The default block font is the standard FIGlet font (Glenn Chappell & Ian Chai).
 
 ## Drolleries
 
-With `--drolleries`, a small ASCII figure is set in the left margin beside each
-paragraph, separated from the text by a ruled line. These imitate the original drolleries found in the margins of illuminated manuscripts, which most often depicted human-animal hybrid figures that reflected the wild imagination of the medieval monastic. The figures come from a fixed built-in repertoire (`src/drollery.rs`): a hare, cat, owl, fish, mouse, snail, bird, and a vine flourish. Selection is deterministic, so a given file always renders the same; pass `--seed N` to reshuffle which figure lands beside which paragraph. We encourage users to add their own drolleries by simply adding to `drollery.rs`. 
+With `--drolleries`, small ASCII figures are scattered down the left margin,
+separated from the text by a ruled line. They are placed at fixed intervals
+independent of the paragraph structure, so the margin fills with figures whether
+the text is one flowing block or many paragraphs. These imitate the original
+drolleries found in the margins of illuminated manuscripts, which most often
+depicted human-animal hybrid figures that reflected the wild imagination of the
+medieval monastic. The figures come from a fixed built-in repertoire
+(`src/drollery.rs`): a hare, cat, owl, fish, mouse, snail, bird, and a vine
+flourish. Selection is deterministic, so a given file always renders the same;
+pass `--seed N` to reshuffle the figures. We encourage users to add their own
+drolleries by simply adding to `drollery.rs`.
 
 ## Ideas to extend
 

@@ -8,14 +8,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- `--pilcrows` (`-p`): mark paragraph breaks with a red ¶ instead of a blank
-  line.
+- `--pilcrows` (`-p`): run paragraphs together as one continuous block, a red ¶
+  marking each break inline (as a medieval scribe did) instead of a blank line.
 - Unicode-aware layout: line width is measured in terminal columns
   (`unicode-width`), so wide characters keep the right margin aligned.
 - Integration tests covering rendering, colour modes, stdin, and error output.
 
 ### Changed
 
+- Drolleries are now scattered down the margin at fixed intervals, independent
+  of paragraph structure, so the menagerie fills the margin even for a single
+  (or pilcrow-joined) paragraph.
 - Line endings (`\r\n`, `\r`) are normalised before paragraph splitting.
 - Errors now print a concise `lindisfarner: <message>` instead of a `Debug`
   dump, and file errors include the path.

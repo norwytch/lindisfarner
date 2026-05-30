@@ -2,7 +2,7 @@
 //!
 //! A fixed repertoire of small ASCII creatures and flourishes. Selection is
 //! deterministic (seeded), so the same input always produces the same page;
-//! changing `--seed` reshuffles which figure lands beside which paragraph.
+//! changing `--seed` reshuffles which figures appear down the margin.
 
 /// The repertoire. Each figure is a slice of rows; rows may differ in width and
 /// are left-aligned within the margin column when rendered.
@@ -49,7 +49,7 @@ fn splitmix(seed: u64, n: u64) -> u64 {
     z ^ (z >> 31)
 }
 
-/// Pick a figure for the `n`-th paragraph, as owned rows.
+/// Pick a figure for the `n`-th slot down the margin, as owned rows.
 pub(crate) fn pick(seed: u64, n: u64) -> Vec<String> {
     let i = (splitmix(seed, n) % count() as u64) as usize;
     DROLLERIES[i].iter().map(|s| s.to_string()).collect()
