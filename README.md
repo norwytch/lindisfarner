@@ -164,5 +164,5 @@ drolleries by simply adding to `drollery.rs`.
   beside lines containing rubricated words.
 - **Codebase analysis**: given a codebase, use lindisfarner for some light vandalism. 
 
-  ## Acknowledgements
+## Acknowledgements
   This tool is a late wedding present for my dear friend Neil Douglas Reilly. 
