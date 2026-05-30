@@ -6,10 +6,10 @@
 Rust CLI tool that illuminates text files with ASCII art. 
 
 <p align="center">
-  <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner: a gold illuminated initial, ornate ❦ border, and wrapped body text" width="560">
+  <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner: a gold illuminated initial, ornate ❦ border, red ¶ pilcrows at paragraph breaks, and wrapped body text" width="560">
 </p>
 
-## The craft, mapped to features
+## Features
 
 | Manuscript element | Lindisfarner adaptation |
 |---|---|
