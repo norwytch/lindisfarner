@@ -162,4 +162,3 @@ drolleries by simply adding to `drollery.rs`.
   supports either side — just swap the column order).
 - **Glosses & manicules**: a second margin channel for user notes or a `☞` set
   beside lines containing rubricated words.
-- **Line fillers**: pad short final lines with `❧` or `✦` ornaments.
