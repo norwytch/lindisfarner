@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Code illumination** (`--code`): treat a source file like a glossed
+  manuscript — keep its lines verbatim, rubricate the language's keywords in
+  red, and lift comments out into the margin as glosses. Auto-detected from the
+  file extension (Rust, Python, JavaScript/TypeScript, C/C++, Go, shell);
+  `--language` overrides detection and `--prose` forces prose mode.
 - `--pilcrows` (`-p`): run paragraphs together as one continuous block, a red ¶
   marking each break inline (as a medieval scribe did) instead of a blank line.
   Successive pilcrows alternate red and blue.

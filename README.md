@@ -3,7 +3,7 @@
 [![CI](https://github.com/norwytch/lindisfarner/actions/workflows/ci.yml/badge.svg)](https://github.com/norwytch/lindisfarner/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Rust CLI tool that illuminates text files with ASCII art. 
+Rust CLI tool that illuminates text and source code with ASCII art. 
 
 <p align="center">
   <img src="assets/banner.svg" alt="sample.txt rendered by lindisfarner with every manuscript element: a gold illuminated drop-cap, a rubricated incipit and words, a justified two-column codex, ASCII drolleries down the margin, alternating red/blue ¶ pilcrows, ❧ line fillers, and the ornate ❦ border" width="900">
@@ -56,6 +56,9 @@ lindisfarner [OPTIONS] [FILE]
       --drolleries       adorn the left margin with ASCII marginal figures
       --seed <N>         vary which drolleries appear   [default: 0]
   -p, --pilcrows         run paragraphs together, separated by an inline ¶
+      --code             illuminate the input as source code (see below)
+      --prose            force prose mode even for a recognised code file
+      --language <LANG>  override the code-mode language (rust, python, c, …)
   -o, --output <FILE>    write to a file instead of stdout
       --completions <SHELL>  print a shell completion script and exit
       --man              print a roff man page and exit
@@ -106,6 +109,37 @@ lindisfarner --man > /usr/local/share/man/man1/lindisfarner.1
 
 Completions are available for bash, zsh, fish, PowerShell, and elvish.
 
+## Code illumination
+
+Point lindisfarner at a source file and it switches to **code mode**: lines are
+kept verbatim (indentation and all), the language's **keywords are rubricated**
+in red, and **comments are lifted out into the margin as glosses** — the way a
+scribe set commentary beside scripture.
+
+```sh
+lindisfarner src/main.rs            # auto-detected from the .rs extension
+lindisfarner --code --language go < snippet.txt
+lindisfarner notes.py --prose       # force prose on a code file instead
+```
+
+```
+╭─────────────────────────────❦─────────────────────────────╮
+│                                 ┊ the program entry point │
+│ fn main() {                     ┊                         │
+│     let greeting = "hi";        ┊ a friendly word         │
+│     for i in 0..3 {             ┊ loop a few times        │
+│         println!("{greeting}"); ┊                         │
+│     }                           ┊                         │
+│ }                               ┊                         │
+╰─────────────────────────────❦─────────────────────────────╯
+```
+
+Languages are matched by extension (Rust, Python, JavaScript/TypeScript, C/C++,
+Go, shell), with a generic fallback for anything else. Detection is keyword- and
+comment-based rather than a full parser, so keywords inside string literals may
+also be reddened — light vandalism, as intended. `--drolleries`, `--border`, and
+`--theme` all still apply.
+
 ## How it fits together
 
 - `src/lib.rs` — the public API: `Config` and `render`.
@@ -114,6 +148,7 @@ Completions are available for bash, zsh, fish, PowerShell, and elvish.
 - `src/border.rs` — the frame and its flourishes.
 - `src/style.rs` — the colour palette / themes.
 - `src/drollery.rs` — the marginal menagerie.
+- `src/code.rs` — code mode: keyword rubrication and comment glosses.
 - `src/main.rs` — the CLI: argument parsing and input/output.
 
 ## Use as a library

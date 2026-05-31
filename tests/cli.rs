@@ -340,3 +340,93 @@ fn completions_and_man_page_generate() {
     assert!(stdout_of(&["--completions", "zsh"]).contains("#compdef"));
     assert!(stdout_of(&["--man"]).contains(".TH"));
 }
+
+fn stdout_of_stdin(args: &[&str], input: &[u8]) -> String {
+    let mut child = bin()
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child.stdin.take().unwrap().write_all(input).unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert!(out.status.success(), "command failed: {args:?}");
+    String::from_utf8(out.stdout).unwrap()
+}
+
+#[test]
+fn code_mode_glosses_comments_and_strips_markers() {
+    let out = stdout_of_stdin(
+        &[
+            "--code",
+            "--language",
+            "rust",
+            "-c",
+            "never",
+            "--border",
+            "none",
+        ],
+        b"fn main() { let x = 5; } // a note\n",
+    );
+    assert!(out.contains('┊'), "expected a gloss margin");
+    assert!(
+        out.contains("a note"),
+        "comment text should appear as a gloss"
+    );
+    assert!(
+        !out.contains("//"),
+        "the comment marker should be stripped from the code"
+    );
+}
+
+#[test]
+fn code_mode_rubricates_keywords() {
+    let out = stdout_of_stdin(
+        &[
+            "--code",
+            "--language",
+            "rust",
+            "-c",
+            "always",
+            "--border",
+            "none",
+        ],
+        b"fn main() {}\n",
+    );
+    assert!(
+        out.contains("\u{1b}[1;31mfn\u{1b}[0m"),
+        "the keyword should be rubricated in red"
+    );
+}
+
+#[test]
+fn code_mode_auto_detects_by_extension() {
+    let path = std::env::temp_dir().join("lindisfarner_codemode_test.py");
+    std::fs::write(&path, b"def f():  # gloss me\n    return 1\n").unwrap();
+    let out = stdout_of(&[path.to_str().unwrap(), "-c", "never", "--border", "none"]);
+    std::fs::remove_file(&path).ok();
+    assert!(
+        out.contains('┊') && out.contains("gloss me"),
+        "a .py file should auto-enable code mode"
+    );
+}
+
+#[test]
+fn prose_flag_overrides_code_detection() {
+    // Forcing prose on a .py file should wrap/decorate it, not gloss it.
+    let path = std::env::temp_dir().join("lindisfarner_prose_test.py");
+    std::fs::write(&path, b"def f():  # not a gloss\n    return 1\n").unwrap();
+    let out = stdout_of(&[
+        path.to_str().unwrap(),
+        "--prose",
+        "-c",
+        "never",
+        "--border",
+        "none",
+    ]);
+    std::fs::remove_file(&path).ok();
+    assert!(
+        !out.contains('┊'),
+        "prose mode should not produce a gloss margin"
+    );
+}

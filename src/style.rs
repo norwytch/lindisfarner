@@ -24,6 +24,7 @@ struct Palette {
     border: &'static str,
     rubric: &'static str,
     rubric_alt: &'static str,
+    gloss: &'static str,
 }
 
 const RESET: &str = "\x1b[0m";
@@ -36,18 +37,21 @@ impl Theme {
                 border: "\x1b[33m",       // yellow
                 rubric: "\x1b[1;31m",     // bold red — the rubric
                 rubric_alt: "\x1b[1;34m", // bold blue — the alternating pilcrow
+                gloss: "\x1b[2;36m",      // dim cyan — marginal glosses
             },
             Theme::Crimson => Palette {
                 initial: "\x1b[1;31m",
                 border: "\x1b[31m",
                 rubric: "\x1b[1;33m",
                 rubric_alt: "\x1b[1;34m",
+                gloss: "\x1b[2;36m",
             },
             Theme::Mono => Palette {
                 initial: "",
                 border: "",
                 rubric: "",
                 rubric_alt: "",
+                gloss: "",
             },
         }
     }
@@ -91,6 +95,11 @@ impl Style {
     /// Paint a rubricated word.
     pub(crate) fn rubric(&self, s: &str) -> String {
         self.paint(self.theme.palette().rubric, s)
+    }
+
+    /// Paint a marginal gloss (a comment lifted out of code into the margin).
+    pub(crate) fn gloss(&self, s: &str) -> String {
+        self.paint(self.theme.palette().gloss, s)
     }
 
     /// Paint a pilcrow, alternating red and blue down the page. Paragraph marks

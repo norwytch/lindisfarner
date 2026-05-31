@@ -15,6 +15,7 @@
 //! ```
 
 mod border;
+mod code;
 mod drollery;
 mod illuminate;
 mod style;
@@ -94,6 +95,12 @@ pub struct Config {
     pub incipit: bool,
     /// Number of text columns (1 = single column).
     pub columns: usize,
+    /// Illuminate the input as source code rather than prose: keep lines
+    /// verbatim, rubricate keywords, and set comments as marginal glosses.
+    pub code: bool,
+    /// The language to use in code mode (by name, e.g. `"rust"`). When `None`,
+    /// a generic fallback is used.
+    pub language: Option<String>,
 }
 
 impl Default for Config {
@@ -114,15 +121,43 @@ impl Default for Config {
             fillers: false,
             incipit: false,
             columns: 1,
+            code: false,
+            language: None,
         }
     }
+}
+
+/// The canonical language name for a filename's extension, if recognised (e.g.
+/// `"main.rs"` → `Some("rust")`). Used to auto-enable code mode.
+pub fn detect_language(filename: &str) -> Option<String> {
+    let ext = std::path::Path::new(filename).extension()?.to_str()?;
+    code::by_extension(ext).map(|lang| lang.name.to_string())
 }
 
 /// Render `source` into a finished, illuminated page.
 pub fn render(source: &str, cfg: &Config) -> String {
     let width = cfg.width.max(MIN_WIDTH);
-    let columns = cfg.columns.max(1);
     let style = Style::new(cfg.colored, cfg.theme);
+
+    // Two illumination modes: a code file kept line-for-line with glossed
+    // comments, or prose wrapped and decorated.
+    let (body, body_w) = if cfg.code {
+        let lang = cfg
+            .language
+            .as_deref()
+            .and_then(code::by_name)
+            .unwrap_or_else(code::generic);
+        code::illuminate(source, lang, &style, width)
+    } else {
+        lay_prose(source, cfg, width, &style)
+    };
+
+    frame(&body, body_w, cfg, &style)
+}
+
+/// Wrap and decorate `source` as prose, returning the body and its width.
+fn lay_prose(source: &str, cfg: &Config, width: usize, style: &Style) -> (Vec<Line>, usize) {
+    let columns = cfg.columns.max(1);
     let font = load_font(cfg.font);
 
     // In a multi-column layout each column is wrapped to its own narrower width.
@@ -135,7 +170,7 @@ pub fn render(source: &str, cfg: &Config) -> String {
     let opts = Options {
         width: col_w,
         gap: 1,
-        style: &style,
+        style,
         rubrics: &cfg.rubrics,
         justify: cfg.justify,
         hyphenate: cfg.hyphenate,
@@ -144,26 +179,27 @@ pub fn render(source: &str, cfg: &Config) -> String {
 
     let content = lay_body(source, cfg, &font, &opts);
 
-    // Set the body into columns if asked, then note its overall width.
-    let (body, body_w) = if columns >= 2 {
+    if columns >= 2 {
         let laid = illuminate::lay_in_columns(&content, columns, col_w, COLUMN_GUTTER);
         let total = columns * col_w + (columns - 1) * COLUMN_GUTTER;
         (laid, total)
     } else {
         (content, width)
-    };
+    }
+}
 
+/// Attach an optional drollery margin and the border, returning the finished
+/// page. Shared by both illumination modes.
+fn frame(body: &[Line], body_w: usize, cfg: &Config, style: &Style) -> String {
     let rows = if cfg.drolleries && !body.is_empty() {
-        let (margin, margin_w) = scatter_drolleries(body.len(), cfg.seed, &style);
+        let (margin, margin_w) = scatter_drolleries(body.len(), cfg.seed, style);
         let sep = format!(" {} ", style.border(&MARGIN_RULE.to_string()));
-        let merged =
-            illuminate::merge_columns(&margin, &body, margin_w, body_w, &sep, MARGIN_SEP_W);
+        let merged = illuminate::merge_columns(&margin, body, margin_w, body_w, &sep, MARGIN_SEP_W);
         let total = margin_w + MARGIN_SEP_W + body_w;
-        border::render(&merged, total, cfg.border, &style)
+        border::render(&merged, total, cfg.border, style)
     } else {
-        border::render(&body, body_w, cfg.border, &style)
+        border::render(body, body_w, cfg.border, style)
     };
-
     rows.join("\n")
 }
 

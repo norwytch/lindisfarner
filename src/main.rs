@@ -88,6 +88,18 @@ struct Args {
     #[arg(long, default_value_t = 1)]
     columns: usize,
 
+    /// Illuminate the input as source code: rubricate keywords, gloss comments
+    #[arg(long)]
+    code: bool,
+
+    /// Force prose illumination even for a recognised code file
+    #[arg(long, conflicts_with = "code")]
+    prose: bool,
+
+    /// Override the code-mode language (e.g. rust, python, c, go, shell)
+    #[arg(long, value_name = "LANG")]
+    language: Option<String>,
+
     /// Print a shell completion script for SHELL and exit
     #[arg(long, value_enum, value_name = "SHELL")]
     completions: Option<Shell>,
@@ -225,6 +237,16 @@ fn run() -> io::Result<()> {
         .filter(|w| !w.is_empty())
         .collect();
 
+    // Code mode is on with --code or --language, or auto-detected from a
+    // recognised source-file extension; --prose forces it off.
+    let detected = args
+        .file
+        .as_deref()
+        .and_then(|p| p.to_str())
+        .and_then(lindisfarner::detect_language);
+    let code = !args.prose && (args.code || args.language.is_some() || detected.is_some());
+    let language = args.language.clone().or(detected);
+
     let cfg = Config {
         width: args.width.unwrap_or_else(default_width),
         border: args.border.into(),
@@ -241,6 +263,8 @@ fn run() -> io::Result<()> {
         fillers: args.fillers,
         incipit: args.incipit,
         columns: args.columns,
+        code,
+        language,
     };
 
     let rendered = render(&source, &cfg);
