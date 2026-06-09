@@ -22,9 +22,9 @@ use std::io;
 use std::path::Path;
 
 use clap::ValueEnum;
-use lindisfarner::{render, render_glossed, Config};
 
 use crate::search::{self, Finding};
+use crate::{render, render_glossed, Config};
 
 /// The detection rules and the encyclical passages, baked into the binary.
 const AI_RULES: &str = include_str!("../rules/ai.yml");
@@ -64,8 +64,9 @@ const SKIP_DIRS: &[&str] = &[
     "build",
 ];
 
+/// Which magnifica mode to run.
 #[derive(Copy, Clone, Debug, ValueEnum)]
-pub(crate) enum Mode {
+pub enum Mode {
     /// Annotate the source with the encyclical beside every AI invocation.
     Witness,
     /// Strike each AI block out of the source, leaving the encyclical in its place.
@@ -73,17 +74,23 @@ pub(crate) enum Mode {
 }
 
 /// Everything a magnifica run needs.
-pub(crate) struct Plan<'a> {
+pub struct Plan<'a> {
+    /// Which mode to run.
     pub mode: Mode,
+    /// The file or directory to search and rewrite.
     pub path: &'a Path,
+    /// An alternative encyclical-passages file; the embedded passages are used
+    /// when `None`.
     pub quotes: Option<&'a Path>,
+    /// Seed varying which passages are chosen.
     pub seed: u64,
+    /// Page-framing options for the printed report.
     pub cfg: Config,
 }
 
 /// Carry out the plan: write the encyclical into the files, then return the
 /// illuminated report to print.
-pub(crate) fn run(plan: &Plan) -> io::Result<String> {
+pub fn run(plan: &Plan) -> io::Result<String> {
     let quotes = load_quotes(plan.quotes)?;
     if quotes.is_empty() {
         return Err(io::Error::other("no encyclical passages to draw from"));

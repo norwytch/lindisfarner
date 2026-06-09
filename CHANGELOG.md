@@ -60,6 +60,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The library now exposes the code-search and magnifica modes. `search`
+  (`find`/`scan`) and `magnifica` (`Mode`/`Plan`/`run`) are public modules behind
+  the default `cli` feature, so they appear in the API docs on docs.rs; library
+  users who don't want them (and their dependencies) can opt out with
+  `default-features = false`. The crate-level docs now cover prose illumination,
+  code illumination, and these modes.
 - `--width` now defaults to the terminal width (60 columns when piped).
 - The first word of a drop-capped paragraph can now be rubricated again — the
   stem beside the initial recovers the rubric.

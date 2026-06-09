@@ -4,8 +4,6 @@
 //! mode, and hands off to the `lindisfarner` library for the illumination.
 
 mod cli;
-mod magnifica;
-mod search;
 
 use std::fs;
 use std::io::{self, Read, Write};
@@ -14,7 +12,7 @@ use std::path::Path;
 use clap::{CommandFactory, Parser};
 
 use cli::Args;
-use lindisfarner::{render, render_glossed, Config};
+use lindisfarner::{magnifica, render, render_glossed, search, Config};
 
 fn main() {
     if let Err(e) = run() {

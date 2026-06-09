@@ -4,9 +4,10 @@
 //! parses its `--json` output. Two entry points return ready-to-render
 //! `(code, gloss)` rows for [`crate::render_glossed`]:
 //!
-//! - [`find`] runs a single pattern and glosses each match with its `file:line`.
-//! - [`scan`] runs a rule config (file or directory) and glosses each finding
-//!   with the rule's message, marked by severity.
+//! - [`find()`](crate::search::find) runs a single pattern and glosses each
+//!   match with its `file:line`.
+//! - [`scan()`](crate::search::scan) runs a rule config (file or directory) and
+//!   glosses each finding with the rule's message, marked by severity.
 //!
 //! Semgrep redacts the matched source in its JSON for unauthenticated runs, so
 //! the matched code is read back from the file by line range — which also keeps
@@ -59,8 +60,9 @@ impl Finding {
 }
 
 /// Find matches of a single `pattern`; each row is the matched code with its
-/// `file:line` as the gloss.
-pub(crate) fn find(path: &Path, pattern: &str, lang: &str) -> io::Result<Vec<(String, String)>> {
+/// `file:line` as the gloss. Pair with [`crate::render_glossed`] to illuminate
+/// the result.
+pub fn find(path: &Path, pattern: &str, lang: &str) -> io::Result<Vec<(String, String)>> {
     let json = run(
         path,
         &["scan", "--pattern", pattern, "--lang", lang_id(lang)],
@@ -73,7 +75,8 @@ pub(crate) fn find(path: &Path, pattern: &str, lang: &str) -> io::Result<Vec<(St
 
 /// Scan with a rule config (a file or a directory of rules); each row is the
 /// matched code with the rule's message — prefixed by a severity mark — gloss.
-pub(crate) fn scan(path: &Path, rules: &Path) -> io::Result<Vec<(String, String)>> {
+/// Pair with [`crate::render_glossed`] to illuminate the result.
+pub fn scan(path: &Path, rules: &Path) -> io::Result<Vec<(String, String)>> {
     let rules = rules
         .to_str()
         .ok_or_else(|| io::Error::other("the rules path is not valid UTF-8"))?;

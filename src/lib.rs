@@ -1,11 +1,14 @@
 //! lindisfarner — a digital scriptorium.
 //!
-//! Turn plain text into an "illuminated" page: a large ASCII-art initial opens
-//! the text, chosen words are rubricated, marginal drolleries and pilcrows adorn
-//! it, and the whole is set inside a decorative border.
+//! Turn plain text **or source code** into an "illuminated" page: a large
+//! ASCII-art initial opens the text, chosen words are rubricated, marginal
+//! drolleries and pilcrows adorn it, and the whole is set inside a decorative
+//! border.
 //!
-//! The entry point is [`render`], which takes the source text and a [`Config`]
-//! and returns the finished page as a `String`:
+//! # Illuminating prose
+//!
+//! [`render`] takes the source and a [`Config`] and returns the finished page as
+//! a `String`:
 //!
 //! ```
 //! use lindisfarner::{render, Config};
@@ -13,6 +16,40 @@
 //! let page = render("Hail and well met, traveller.", &Config::default());
 //! assert!(page.contains('❦')); // the ornate frame's flourish
 //! ```
+//!
+//! Set [`Config::corrupt`] to let a careless scribe introduce transcription
+//! errors, varied deterministically by [`Config::seed`].
+//!
+//! # Illuminating code
+//!
+//! Set [`Config::code`] to treat the input as source rather than prose: lines are
+//! kept verbatim, the language's keywords are rubricated, and comments are lifted
+//! into the margin as glosses. Name the language with [`Config::language`], or
+//! derive it from a path with [`detect_language`].
+//!
+//! ```
+//! use lindisfarner::{render, Config};
+//!
+//! let cfg = Config { code: true, language: Some("rust".into()), ..Config::default() };
+//! let page = render("fn main() {} // the entry point\n", &cfg);
+//! assert!(page.contains("the entry point")); // the comment becomes a gloss
+//! ```
+//!
+//! [`render_glossed`] lays out explicit `(code, gloss)` rows — each line of code
+//! beside a note in the margin — for building commentary pages directly.
+//!
+//! # Searching code, and the magnifica modes
+//!
+//! With the `cli` feature (on by default), two further modules back the
+//! command-line tool:
+//!
+//! - `search` — run a [Semgrep](https://semgrep.dev) pattern or rule set over a
+//!   path and gloss the matches (the `--find` and `--scan` modes).
+//! - `magnifica` — an art project that finds where a codebase uses AI and writes
+//!   the words of the encyclical *Magnifica Humanitas* into those files,
+//!   annotating or breaking them (the `--magnifica` modes).
+//!
+//! Both pull in extra dependencies; drop them with `default-features = false`.
 
 #![warn(missing_docs)]
 
@@ -22,6 +59,16 @@ mod drollery;
 mod illuminate;
 mod scribe;
 mod style;
+
+/// Semgrep-backed code search, behind the `cli` feature. Powers `--find` and
+/// `--scan`.
+#[cfg(feature = "cli")]
+pub mod search;
+
+/// The magnifica art-project modes, behind the `cli` feature. Powers
+/// `--magnifica`.
+#[cfg(feature = "cli")]
+pub mod magnifica;
 
 use std::collections::HashSet;
 

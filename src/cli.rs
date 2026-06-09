@@ -7,9 +7,7 @@ use std::path::PathBuf;
 use clap::{Parser, ValueEnum};
 use clap_complete::Shell;
 
-use lindisfarner::{Border, Config, DropCap, Font, Theme, MIN_WIDTH};
-
-use crate::magnifica;
+use lindisfarner::{magnifica, Border, Config, DropCap, Font, Theme, MIN_WIDTH};
 
 #[derive(Parser, Debug)]
 #[command(
