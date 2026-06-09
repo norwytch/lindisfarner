@@ -1,9 +1,9 @@
 [package]
 name = "lindisfarner"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.85"
-description = "A digital scriptorium: illuminate plain text with ASCII-art initials, rubrics, and ornate borders."
+description = "Illuminate or vandalize text and code with ASCII art in Rust."
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/norwytch/lindisfarner"
