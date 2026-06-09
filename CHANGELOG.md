@@ -8,11 +8,39 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **The magnifica modes** (`--magnifica <witness|relinquish>`) — an art project.
+  lindisfarner finds where a codebase uses AI — hosted-vendor SDKs (`rules/ai.yml`),
+  the model lifecycle of training your own neural net (`rules/ml.yml`), and model
+  weight files on disk (a filesystem scan Semgrep can't do) — and answers with the
+  words of the encyclical *Magnifica Humanitas*:
+  Both modes **write the encyclical into the files on disk**, then print an
+  illuminated report: `witness` inserts the encyclical as a comment beside each AI
+  invocation, leaving the code intact; `relinquish` strikes each AI block out and
+  leaves the encyclical's words in its place, breaking what it touches. Model
+  weight files are reported but never modified. The writes go straight to disk
+  with no safety net — keeping a backup or a clean commit is the caller's
+  responsibility. Passages live in `assets/quotes.txt` (override with
+  `--quotes`).
+
 - **Code illumination** (`--code`): treat a source file like a glossed
   manuscript — keep its lines verbatim, rubricate the language's keywords in
   red, and lift comments out into the margin as glosses. Auto-detected from the
   file extension (Rust, Python, JavaScript/TypeScript, C/C++, Go, shell);
   `--language` overrides detection and `--prose` forces prose mode.
+- `--corrupt`: introduce scribal transcription errors — the transposed, dropped,
+  doubled, and misread letters of a tired monk — purposefully breaking the text
+  (and code), deterministically by `--seed`. Only letters are touched, so
+  whitespace, punctuation, and line count survive.
+- `--find <PATTERN>`: search a file or directory for a [Semgrep] pattern and
+  illuminate the matches as a glossed commentary page — each match rubricated,
+  glossed with its `file:line`. Requires `semgrep` on `PATH`. Also exposed as the
+  library function `render_glossed`.
+- `--scan <RULES>`: scan with a [Semgrep] rule config — a file, a whole directory
+  of rules, or a registry ruleset — and gloss each finding with its rule message,
+  marked by severity († ERROR, ☞ WARNING, ❧ INFO). A starter rule library ships
+  in `rules/`.
+
+[Semgrep]: https://semgrep.dev
 - `--pilcrows` (`-p`): run paragraphs together as one continuous block, a red ¶
   marking each break inline (as a medieval scribe did) instead of a blank line.
   Successive pilcrows alternate red and blue.

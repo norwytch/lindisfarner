@@ -1,0 +1,11 @@
+# A Semgrep rule. See https://semgrep.dev/docs/writing-rules/rule-syntax
+#
+# `id`/`message`/`severity` become the gloss lindisfarner sets beside each match
+# (severity picks the scribe's mark: † ERROR, ☞ WARNING, ❧ INFO). The `pattern`
+# is matched structurally — `$X` captures any single node, `...` any sequence.
+rules:
+  - id: no-unwrap
+    languages: [rust]
+    severity: WARNING
+    message: a careless unwrap() — handle the error instead
+    pattern: $X.unwrap()

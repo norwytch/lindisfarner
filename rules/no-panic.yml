@@ -1,0 +1,6 @@
+rules:
+  - id: no-panic
+    languages: [rust]
+    severity: ERROR
+    message: panic! brings the whole scriptorium down — return an error
+    pattern: panic!(...)

@@ -293,6 +293,7 @@ dependencies = [
  "clap_mangen",
  "figlet-rs",
  "proptest",
+ "serde_json",
  "terminal_size",
  "unicode-width",
 ]

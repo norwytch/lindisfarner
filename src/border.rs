@@ -7,11 +7,16 @@
 use crate::illuminate::Line;
 use crate::style::Style;
 
+/// The frame drawn around the page.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Border {
+    /// No frame at all.
     None,
+    /// A plain single-line box.
     Simple,
+    /// A double-line box.
     Double,
+    /// A single-line box with a ❦ flourish centred on the top and bottom rules.
     Ornate,
 }
 

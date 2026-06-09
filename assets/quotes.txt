@@ -1,0 +1,30 @@
+# Passages from the Encyclical Letter MAGNIFICA HUMANITAS of His Holiness Pope
+# Leo XIV, "On Safeguarding the Human Person in the Time of Artificial
+# Intelligence." Each passage is separated by a blank line. lindisfarner reads
+# this file for its encyclical modes; replace it to use a different source.
+
+In the time of artificial intelligence, when human dignity is threatened by new forms of dehumanization, ours is the pressing duty to remain profoundly human. — Magnifica Humanitas §15
+
+We must lovingly safeguard the grandeur of humanity bestowed upon us and revealed in its fullness in Christ, the splendor of which no machine can ever replace. True progress always stems from a heart open to others, an intelligence willing to listen and a will that seeks what unites rather than what separates. — Magnifica Humanitas §15
+
+It will always be human intelligence, with its conscience and freedom, that guides technical innovations and responsibly determines their use and limits. — Magnifica Humanitas §97
+
+Current AI systems are more "cultivated" than "built," for developers do not directly design every detail, but instead create a framework within which the intelligence "grows." — Magnifica Humanitas §98
+
+We must avoid the misconception of equating this type of "intelligence" with that of human beings. These systems merely imitate certain functions of human intelligence. — Magnifica Humanitas §99
+
+So-called artificial intelligences do not undergo experiences, do not possess a body, do not feel joy or pain, do not mature through relationships and do not know from within what love, work, friendship or responsibility mean. — Magnifica Humanitas §99
+
+They may imitate language, behavior and analytical skills, or even simulate empathy and understanding, but they do not understand what they produce. — Magnifica Humanitas §99
+
+Technological innovations, including artificial intelligence, are not neutral, for they can either foster participation and justice or exacerbate inequality, control and exclusion. — Magnifica Humanitas §90
+
+Entrusting an algorithm in practice with the power to select who is worthy or not, without anyone bearing responsibility for that judgment, is to hand over the task of redefining the boundaries of human possibilities. — Magnifica Humanitas §103
+
+We cannot be satisfied with merely calling for the moralization of machines — the so-called "alignment" of AI with human values — without also having the courage to subject them to shared standards of social justice. — Magnifica Humanitas §107
+
+Otherwise, those who control AI will impose their own moral vision, which will become the invisible infrastructure of these systems. — Magnifica Humanitas §107
+
+In one sense, technological innovation can represent human participation in the divine act of creation. Developers, therefore, bear a particular ethical and spiritual responsibility, for every design choice reflects a vision of humanity. — Magnifica Humanitas §111
+
+Developers are called to embed values in their projects with due seriousness: with transparency, responsibility toward affected communities and careful attention to ensuring that what is being cultivated is a genuine good. — Magnifica Humanitas §111

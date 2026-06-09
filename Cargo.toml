@@ -7,8 +7,13 @@ description = "A digital scriptorium: illuminate plain text with ASCII-art initi
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/norwytch/lindisfarner"
+documentation = "https://docs.rs/lindisfarner"
 keywords = ["cli", "ascii-art", "figlet", "ansi", "text"]
 categories = ["command-line-utilities", "text-processing"]
+# Keep the published package lean: the encyclical PDF and the rendered banner are
+# repo-only. The embedded rules/*.yml and assets/quotes.txt are pulled in via
+# include_str! and must stay in the package.
+exclude = ["assets/*.pdf", "assets/*.svg", ".github/", ".venv/"]
 
 [lib]
 name = "lindisfarner"
@@ -17,14 +22,28 @@ path = "src/lib.rs"
 [[bin]]
 name = "lindisfarner"
 path = "src/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+# The command-line front end and its search/magnifica modes. Library-only users
+# can drop these with `--no-default-features`.
+cli = ["dep:clap", "dep:clap_complete", "dep:clap_mangen", "dep:serde_json", "dep:terminal_size"]
 
 [dependencies]
-clap = { version = "4", features = ["derive"] }
-clap_complete = "4"
-clap_mangen = "0.2"
+# Library dependencies (always required).
 figlet-rs = "0.1"
-terminal_size = "0.4"
 unicode-width = "0.2"
+# CLI-only dependencies, enabled by the `cli` feature.
+clap = { version = "4", features = ["derive"], optional = true }
+clap_complete = { version = "4", optional = true }
+clap_mangen = { version = "0.2", optional = true }
+serde_json = { version = "1", optional = true }
+terminal_size = { version = "0.4", optional = true }
 
 [dev-dependencies]
 proptest = "1"
+
+[package.metadata.docs.rs]
+# Document the full crate, including the CLI items, on docs.rs.
+all-features = true

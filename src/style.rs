@@ -6,6 +6,7 @@
 
 use std::cell::Cell;
 
+/// The colour palette for the illuminated "pigments".
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Theme {
     /// Gold initials, yellow border, red rubrics — the classic look.

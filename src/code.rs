@@ -12,8 +12,9 @@ use crate::style::Style;
 
 /// The marginal rule and its visible width (a glyph flanked by two spaces).
 const SEP_W: usize = 3;
-/// The widest a gloss margin grows before comments are truncated.
-const GLOSS_MAX: usize = 32;
+/// The widest a gloss margin grows before comments (or rule messages) are
+/// truncated.
+const GLOSS_MAX: usize = 48;
 
 /// A language's lexical surface: the keywords we rubricate and how its comments
 /// are written, so they can be lifted into the margin.
@@ -259,6 +260,18 @@ pub(crate) fn illuminate(
         })
         .collect();
 
+    lay_rows(&rows, lang, style, width)
+}
+
+/// Lay out explicit `(code, gloss)` rows: the code rubricated, the gloss set in
+/// the right margin. Shared by file illumination and the `--find` commentary
+/// page (where the gloss is each match's location rather than a comment).
+pub(crate) fn lay_rows(
+    rows: &[(String, String)],
+    lang: &Language,
+    style: &Style,
+    width: usize,
+) -> (Vec<Line>, usize) {
     let any_gloss = rows.iter().any(|(_, g)| !g.trim().is_empty());
     let code_w = rows
         .iter()
@@ -278,13 +291,13 @@ pub(crate) fn illuminate(
 
     let sep = format!(" {} ", style.border("┊"));
     let body = rows
-        .into_iter()
+        .iter()
         .map(|(code, gloss)| {
-            let code_plain = truncate(&code, code_w);
+            let code_plain = truncate(code, code_w);
             let cw = display_width(&code_plain);
             let code_shown = rubricate(&code_plain, lang, style);
             if any_gloss {
-                let gloss_plain = truncate(&gloss, gloss_w);
+                let gloss_plain = truncate(gloss, gloss_w);
                 let gw = display_width(&gloss_plain);
                 let shown = format!(
                     "{code_shown}{}{sep}{}{}",

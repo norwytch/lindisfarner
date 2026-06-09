@@ -14,10 +14,13 @@
 //! assert!(page.contains('❦')); // the ornate frame's flourish
 //! ```
 
+#![warn(missing_docs)]
+
 mod border;
 mod code;
 mod drollery;
 mod illuminate;
+mod scribe;
 mod style;
 
 use std::collections::HashSet;
@@ -101,6 +104,9 @@ pub struct Config {
     /// The language to use in code mode (by name, e.g. `"rust"`). When `None`,
     /// a generic fallback is used.
     pub language: Option<String>,
+    /// Introduce scribal transcription errors, purposefully breaking the text
+    /// (and code). Varied by [`Config::seed`].
+    pub corrupt: bool,
 }
 
 impl Default for Config {
@@ -123,21 +129,40 @@ impl Default for Config {
             columns: 1,
             code: false,
             language: None,
+            corrupt: false,
         }
     }
 }
 
 /// The canonical language name for a filename's extension, if recognised (e.g.
 /// `"main.rs"` → `Some("rust")`). Used to auto-enable code mode.
+///
+/// ```
+/// use lindisfarner::detect_language;
+///
+/// assert_eq!(detect_language("main.rs").as_deref(), Some("rust"));
+/// assert_eq!(detect_language("notes.txt"), None);
+/// ```
+#[must_use]
 pub fn detect_language(filename: &str) -> Option<String> {
     let ext = std::path::Path::new(filename).extension()?.to_str()?;
     code::by_extension(ext).map(|lang| lang.name.to_string())
 }
 
 /// Render `source` into a finished, illuminated page.
+#[must_use]
 pub fn render(source: &str, cfg: &Config) -> String {
     let width = cfg.width.max(MIN_WIDTH);
     let style = Style::new(cfg.colored, cfg.theme);
+
+    // A careless scribe meddles with the text before it is ever set down.
+    let corrupted;
+    let source = if cfg.corrupt {
+        corrupted = scribe::corrupt(source, cfg.seed);
+        corrupted.as_str()
+    } else {
+        source
+    };
 
     // Two illumination modes: a code file kept line-for-line with glossed
     // comments, or prose wrapped and decorated.
@@ -152,6 +177,30 @@ pub fn render(source: &str, cfg: &Config) -> String {
         lay_prose(source, cfg, width, &style)
     };
 
+    frame(&body, body_w, cfg, &style)
+}
+
+/// Render explicit `(code, gloss)` rows as an illuminated commentary page: each
+/// code line rubricated, its gloss set in the margin, the whole framed. Used to
+/// present `--find` matches (the gloss is each match's `file:line`).
+///
+/// ```
+/// use lindisfarner::{render_glossed, Config};
+///
+/// let rows = vec![("let x = 1;".to_string(), "a binding".to_string())];
+/// let page = render_glossed(&rows, &Config::default());
+/// assert!(page.contains("a binding")); // the gloss is set in the margin
+/// ```
+#[must_use]
+pub fn render_glossed(rows: &[(String, String)], cfg: &Config) -> String {
+    let width = cfg.width.max(MIN_WIDTH);
+    let style = Style::new(cfg.colored, cfg.theme);
+    let lang = cfg
+        .language
+        .as_deref()
+        .and_then(code::by_name)
+        .unwrap_or_else(code::generic);
+    let (body, body_w) = code::lay_rows(rows, lang, &style, width);
     frame(&body, body_w, cfg, &style)
 }
 

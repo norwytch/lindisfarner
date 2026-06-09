@@ -1,0 +1,165 @@
+# Detection rules for uses of AI/LLM tools, used by lindisfarner's magnifica
+# modes (and usable on their own via `--scan rules/ai.yml`). Each `message` is a
+# short label for what was found; the encyclical commentary is drawn separately
+# from assets/quotes.txt.
+rules:
+  # --- Direct HTTP / keys (any file) -----------------------------------------
+  - id: ai-api-endpoint
+    languages: [generic]
+    severity: INFO
+    message: a direct call to an AI provider's API
+    pattern-regex: (api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|api\.cohere\.(ai|com)|api\.mistral\.ai|api\.groq\.com|api\.together\.(ai|xyz)|api\.replicate\.com|bedrock-runtime)
+
+  - id: ai-api-key
+    languages: [generic]
+    severity: INFO
+    message: an AI provider API key
+    pattern-regex: (OPENAI|ANTHROPIC|GROQ|MISTRAL|COHERE|GEMINI|GOOGLE_API|TOGETHER|REPLICATE|HUGGINGFACE|HF)_API[_-]?(KEY|TOKEN)
+
+  # --- Python ----------------------------------------------------------------
+  - id: openai-python
+    languages: [python]
+    severity: INFO
+    message: an OpenAI invocation
+    pattern-either:
+      - pattern: import openai
+      - pattern: import openai as $X
+      - pattern: from openai import $X
+      - pattern: OpenAI(...)
+      - pattern: AsyncOpenAI(...)
+      - pattern: AzureOpenAI(...)
+      - pattern: $C.chat.completions.create(...)
+      - pattern: $C.responses.create(...)
+      - pattern: $C.embeddings.create(...)
+      - pattern: $C.completions.create(...)
+      - pattern: openai.ChatCompletion.create(...)
+
+  - id: anthropic-python
+    languages: [python]
+    severity: INFO
+    message: an Anthropic invocation
+    pattern-either:
+      - pattern: import anthropic
+      - pattern: from anthropic import $X
+      - pattern: Anthropic(...)
+      - pattern: AsyncAnthropic(...)
+      - pattern: $C.messages.create(...)
+
+  - id: google-genai-python
+    languages: [python]
+    severity: INFO
+    message: a Google generative-AI invocation
+    pattern-either:
+      - pattern: import google.generativeai as $X
+      - pattern: from google import genai
+      - pattern: import vertexai
+      - pattern: genai.Client(...)
+      - pattern: genai.GenerativeModel(...)
+      - pattern: $M.generate_content(...)
+
+  - id: bedrock-python
+    languages: [python]
+    severity: INFO
+    message: an AWS Bedrock invocation
+    pattern-either:
+      - pattern: boto3.client("bedrock-runtime")
+      - pattern: $C.invoke_model(...)
+
+  - id: ai-library-python
+    languages: [python]
+    severity: INFO
+    message: an AI/LLM library import
+    pattern-either:
+      - pattern: import cohere
+      - pattern: import ollama
+      - pattern: import litellm
+      - pattern: import groq
+      - pattern: import replicate
+      - pattern: import together
+      - pattern: from mistralai import $X
+      - pattern: from groq import $X
+      - pattern: from cohere import $X
+      - pattern: from huggingface_hub import $X
+      - pattern: from llama_index import $X
+      - pattern: from sentence_transformers import $X
+      - pattern: from transformers import $X
+      - pattern: from langchain import $X
+      - pattern: from langchain_openai import $X
+      - pattern: from langchain_anthropic import $X
+      - pattern: from langchain_community import $X
+
+  - id: ai-agent-framework-python
+    languages: [python]
+    severity: INFO
+    message: an AI agent framework
+    pattern-either:
+      - pattern: import crewai
+      - pattern: from crewai import $X
+      - pattern: import autogen
+      - pattern: import langgraph
+      - pattern: from langgraph import $X
+      - pattern: import dspy
+      - pattern: import instructor
+      - pattern: from semantic_kernel import $X
+      - pattern: from haystack import $X
+
+  # --- JavaScript / TypeScript ----------------------------------------------
+  - id: openai-js
+    languages: [javascript, typescript]
+    severity: INFO
+    message: an OpenAI invocation
+    pattern-either:
+      - pattern: new OpenAI(...)
+      - pattern: new AzureOpenAI(...)
+      - pattern: import OpenAI from "openai"
+      - pattern: $C.chat.completions.create(...)
+      - pattern: $C.responses.create(...)
+      - pattern: $C.embeddings.create(...)
+
+  - id: anthropic-js
+    languages: [javascript, typescript]
+    severity: INFO
+    message: an Anthropic invocation
+    pattern-either:
+      - pattern: new Anthropic(...)
+      - pattern: import Anthropic from "@anthropic-ai/sdk"
+      - pattern: $C.messages.create(...)
+
+  - id: google-genai-js
+    languages: [javascript, typescript]
+    severity: INFO
+    message: a Google generative-AI invocation
+    pattern-either:
+      - pattern: new GoogleGenerativeAI(...)
+      - pattern: $M.generateContent(...)
+
+  - id: vercel-ai-sdk-js
+    languages: [javascript, typescript]
+    severity: INFO
+    message: a Vercel AI SDK call
+    pattern-either:
+      - pattern: generateText(...)
+      - pattern: streamText(...)
+      - pattern: generateObject(...)
+      - pattern: streamObject(...)
+
+  - id: ai-library-js
+    languages: [javascript, typescript]
+    severity: INFO
+    message: an AI/LLM library import
+    pattern-either:
+      - pattern: import $X from "cohere-ai"
+      - pattern: import $X from "replicate"
+      - pattern: import $X from "@google/generative-ai"
+      - pattern: import $X from "@ai-sdk/openai"
+      - pattern: import $X from "@ai-sdk/anthropic"
+      - pattern: import $X from "langchain"
+
+  # --- Go --------------------------------------------------------------------
+  - id: openai-go
+    languages: [go]
+    severity: INFO
+    message: an OpenAI invocation
+    pattern-either:
+      - pattern: openai.NewClient(...)
+      - pattern: $C.CreateChatCompletion(...)

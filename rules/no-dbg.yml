@@ -1,0 +1,6 @@
+rules:
+  - id: no-dbg
+    languages: [rust]
+    severity: WARNING
+    message: a dbg! left in the margin — remove before binding the codex
+    pattern: dbg!(...)

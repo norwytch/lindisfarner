@@ -1,0 +1,10 @@
+# `pattern-either` is one of Semgrep's composite operators — see the rule-syntax
+# guide for `patterns` (AND), `pattern-not`, `pattern-inside`, and more.
+rules:
+  - id: unfinished
+    languages: [rust]
+    severity: INFO
+    message: an unfinished passage — todo!/unimplemented! awaits the scribe
+    pattern-either:
+      - pattern: todo!(...)
+      - pattern: unimplemented!(...)

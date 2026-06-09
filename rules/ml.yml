@@ -1,0 +1,105 @@
+# Detection rules for the lifecycle of *your own* neural models — training,
+# evaluation, fine-tuning, deployment — as opposed to calls to hosted AI vendors
+# (those live in ai.yml). Used by lindisfarner's magnifica modes and via
+# `--scan rules/ml.yml`. Note: Semgrep reads source code, so these find the
+# *code* of the ML lifecycle; the weight files themselves are found separately
+# by lindisfarner's own filesystem scan.
+rules:
+  - id: ml-framework
+    languages: [python]
+    severity: INFO
+    message: a machine-learning framework
+    pattern-either:
+      - pattern: import torch
+      - pattern: import tensorflow
+      - pattern: import tensorflow as $X
+      - pattern: import keras
+      - pattern: import jax
+      - pattern: import flax
+      - pattern: import sklearn
+      - pattern: from sklearn import $X
+      - pattern: import xgboost
+      - pattern: import lightgbm
+      - pattern: import catboost
+      - pattern: import pytorch_lightning
+      - pattern: import lightning
+      - pattern: import torchvision
+      - pattern: import timm
+
+  - id: ml-data-preprocessing
+    languages: [python]
+    severity: INFO
+    message: data preparation for a model
+    pattern-either:
+      - pattern: train_test_split(...)
+      - pattern: StandardScaler(...)
+      - pattern: MinMaxScaler(...)
+      - pattern: $X.fit_transform(...)
+      - pattern: DataLoader(...)
+      - pattern: load_dataset(...)
+      - pattern: transforms.Compose(...)
+
+  - id: ml-model-loading
+    languages: [python]
+    severity: INFO
+    message: loading or defining a model
+    pattern-either:
+      - pattern: "class $M(nn.Module): ..."
+      - pattern: "class $M(torch.nn.Module): ..."
+      - pattern: $X.from_pretrained(...)
+      - pattern: torch.load(...)
+      - pattern: joblib.load(...)
+      - pattern: keras.models.load_model(...)
+      - pattern: onnx.load(...)
+
+  - id: ml-training
+    languages: [python]
+    severity: INFO
+    message: training a model
+    pattern-either:
+      - pattern: $MODEL.fit(...)
+      - pattern: Trainer(...)
+      - pattern: $T.train(...)
+      - pattern: $LOSS.backward()
+      - pattern: $OPT.step()
+      - pattern: $OPT.zero_grad()
+
+  - id: ml-fine-tuning
+    languages: [python]
+    severity: INFO
+    message: fine-tuning a model
+    pattern-either:
+      - pattern: LoraConfig(...)
+      - pattern: get_peft_model(...)
+      - pattern: SFTTrainer(...)
+      - pattern: BitsAndBytesConfig(...)
+      - pattern: import bitsandbytes
+      - pattern: from peft import $X
+      - pattern: from trl import $X
+
+  - id: ml-evaluation
+    languages: [python]
+    severity: INFO
+    message: evaluating a model
+    pattern-either:
+      - pattern: accuracy_score(...)
+      - pattern: f1_score(...)
+      - pattern: roc_auc_score(...)
+      - pattern: classification_report(...)
+      - pattern: confusion_matrix(...)
+      - pattern: evaluate.load(...)
+      - pattern: $MODEL.evaluate(...)
+
+  - id: ml-deployment
+    languages: [python]
+    severity: INFO
+    message: saving, exporting, or serving a model
+    pattern-either:
+      - pattern: torch.save(...)
+      - pattern: $MODEL.save(...)
+      - pattern: torch.onnx.export(...)
+      - pattern: torch.jit.trace(...)
+      - pattern: torch.jit.script(...)
+      - pattern: mlflow.log_model(...)
+      - pattern: import bentoml
+      - pattern: import onnxruntime
