@@ -24,7 +24,7 @@ lindisfarner can:
   models, and either annotate the code with quotes from Magnifica Humanitas or
   break the code outright. This mode writes directly to disk and does not check
   whether you have committed anything to git. **Do not use it on code you rely
-  on — it will break it.**
+  on, IT WILL BREAK IT!**
 
 ## Install
 
